@@ -1,6 +1,5 @@
 const mongoose = require('mongoose');
 const slugify = require('slugify');
-const tour = require('../routers/tour');
 
 const tourSchema = new mongoose.Schema(
   {
@@ -8,7 +7,10 @@ const tourSchema = new mongoose.Schema(
       type: String,
       required: [true, 'Name must be provided!'],
       unique: true,
+      minlength: 5,
+      maxlength: 17,
     },
+    slug: String,
     duration: {
       type: Number,
       required: [true, 'Duration must be provided'],
@@ -20,6 +22,11 @@ const tourSchema = new mongoose.Schema(
     difficulty: {
       type: String,
       required: [true, 'Difficulty must be provided'],
+      enum: {
+        values: ['easy', 'medium', 'difficult'],
+        message:
+          'Difficulty must be provided with next options: easy, medium, difficult',
+      },
     },
     ratingsAverage: {
       type: Number,
@@ -32,6 +39,16 @@ const tourSchema = new mongoose.Schema(
     price: {
       type: Number,
       required: [true, 'Price must be provided!'],
+      min: 1,
+    },
+    discount: {
+      type: Number,
+      validate: {
+        validator: function (val) {
+          return this.price > val;
+        },
+        message: 'Discount must be less than current price',
+      },
     },
     creationDate: {
       type: Date,
@@ -52,7 +69,10 @@ const tourSchema = new mongoose.Schema(
       required: [true, 'Image cover must be provided'],
     },
     images: [String],
-    startDates: [Date],
+    startDates: {
+      type: Boolean,
+      default: false,
+    },
   },
   { toJSON: { virtuals: true }, toObject: { virtuals: true } }
 );
@@ -61,8 +81,19 @@ tourSchema.virtual('weekDuration').get(function () {
   return this.duration / 7;
 });
 
-tourSchema.pre('save', function () {
+tourSchema.pre('save', function (next) {
   this.slug = slugify(this.name, { replacement: '_', lower: true, trim: true });
+  next();
+});
+
+tourSchema.pre(/^find/, function (next) {
+  this.find({ special: { $ne: true } });
+  next();
+});
+
+tourSchema.pre('aggregate', function (next) {
+  this.pipeline().unshift({ $match: { special: { $ne: true } } });
+  next();
 });
 
 const Tour = mongoose.model('Tour', tourSchema);

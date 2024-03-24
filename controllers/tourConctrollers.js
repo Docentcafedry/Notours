@@ -1,6 +1,7 @@
 const { match } = require('assert');
 const Tour = require('./../models/tourModel');
 const fs = require('fs');
+const APIFeatures = require('./../utils/api-features');
 
 // exports.validateBodyTour = validateBodyTour = (req, res, next) => {
 //   if (!req.body.name || !req.body.duration) {
@@ -63,7 +64,6 @@ exports.getYearTours = async (req, res) => {
 exports.getStats = async (req, res) => {
   try {
     const stats = await Tour.aggregate([
-      { $match: { price: { $gte: 1200 } } },
       {
         $group: {
           _id: { $toUpper: '$difficulty' },
@@ -96,38 +96,13 @@ exports.getStats = async (req, res) => {
 
 exports.getAllTours = getAllTours = async (req, res) => {
   try {
-    let query = Tour.find();
-    const filterQueries = { ...req.query };
-    const excludedQueries = ['page', 'limit', 'sort', 'fields'];
-    excludedQueries.forEach((query) => delete filterQueries[query]);
-    let queryString = JSON.stringify(filterQueries);
-    queryString = JSON.parse(
-      queryString.replace(/\b(gte|gt|lte|lt)\b/g, (value) => `$${value}`)
-    );
+    const apiFeature = new APIFeatures(Tour.find(), req.query)
+      .filter()
+      .sort()
+      .selectFields()
+      .paginate();
 
-    query = query.find(queryString);
-
-    if (req.query.sort) {
-      const sortString = req.query.sort.split(',').join(` `);
-      query = query.sort(sortString);
-    } else {
-      query = query.sort('price');
-    }
-
-    if (req.query.fields) {
-      const fieldsString = req.query.fields.split(',').join(' ');
-      query = query.select(fieldsString);
-    } else {
-      query = query.select('-__v');
-    }
-
-    const page = req.query.page * 1 || 1;
-    const limit = req.query.limit * 1 || 10;
-    const skip = (page - 1) * limit;
-
-    query = query.skip(skip).limit(limit);
-
-    const tours = await query;
+    const tours = await apiFeature.query;
 
     return res.status(200).json({
       status: 'success',
