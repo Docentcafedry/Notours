@@ -4,6 +4,8 @@ const express = require('express');
 const morgan = require('morgan');
 const tourRoute = require(`./routers/tour`);
 const mongoose = require('mongoose');
+const AppError = require('./utils/app-error');
+const errorHandler = require('./controllers/errorController');
 
 dotenv.config({ path: './config.env' });
 
@@ -32,6 +34,14 @@ app.use((req, res, next) => {
 });
 
 app.use('/api/v1/tours', tourRoute);
+
+app.all('*', (req, res, next) => {
+  const error = new AppError('There is no such path in app', 400);
+
+  next(error);
+});
+
+app.use(errorHandler);
 
 app.listen(5555, () => {
   console.log('Started listening port 5555');
