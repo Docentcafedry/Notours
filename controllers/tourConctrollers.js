@@ -1,6 +1,5 @@
 const { match } = require('assert');
 const Tour = require('./../models/tourModel');
-const fs = require('fs');
 const APIFeatures = require('./../utils/api-features');
 const errorCatch = require('./../utils/error-catching');
 const AppError = require('./../utils/app-error');

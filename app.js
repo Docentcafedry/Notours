@@ -3,6 +3,7 @@ const dotenv = require('dotenv');
 const express = require('express');
 const morgan = require('morgan');
 const tourRoute = require(`./routers/tour`);
+const userRoute = require('./routers/user');
 const mongoose = require('mongoose');
 const AppError = require('./utils/app-error');
 const errorHandler = require('./controllers/errorController');
@@ -34,6 +35,7 @@ app.use((req, res, next) => {
 });
 
 app.use('/api/v1/tours', tourRoute);
+app.use('/api/v1/users', userRoute);
 
 app.all('*', (req, res, next) => {
   const error = new AppError('There is no such path in app', 400);
