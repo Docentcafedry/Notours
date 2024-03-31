@@ -110,13 +110,13 @@ exports.postTour = postTour = errorCatch(async (req, res) => {
 exports.getTour = getTour = errorCatch(async (req, res, next) => {
   const tour = await Tour.findById(req.params.id);
 
-  if (!tour) {
-    const error = new AppError(
-      `There is no tour with such id ${req.params.id}`,
-      400
-    );
-    next(error);
-  }
+  // if (!tour) {
+  //   const error = new AppError(
+  //     `There is no tour with such id ${req.params.id}`,
+  //     400
+  //   );
+  //   next(error);
+  // }
   return res.status(200).json({
     status: 'success',
     data: {

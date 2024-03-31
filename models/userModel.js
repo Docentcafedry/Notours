@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
+const crypto = require('crypto');
 
 const userSchema = mongoose.Schema({
   name: {
@@ -33,7 +34,27 @@ const userSchema = mongoose.Schema({
       message: "Passwords didn't matched",
     },
   },
-  passwordChanged: Date,
+  role: {
+    type: String,
+
+    enum: {
+      values: ['user', 'guide', 'lead-guide', 'admin'],
+      message: "User role can be as: user, guide, 'lead-guide, admin",
+    },
+    select: false,
+  },
+  passwordRecoveryToken: {
+    type: String,
+    select: false,
+  },
+  passwordRecoveryTime: {
+    type: Date,
+    select: false,
+  },
+  passwordChanged: {
+    type: Date,
+    select: false,
+  },
 });
 
 userSchema.pre('save', async function (next) {
@@ -44,8 +65,25 @@ userSchema.pre('save', async function (next) {
   next();
 });
 
+userSchema.pre('save', function (next) {
+  if (!this.isModified('password') || this.$isNew) return next();
+
+  this.passwordChanged = Date.now();
+  next();
+});
+
 userSchema.methods.comparePasswords = async function (password, hashPassword) {
   return await bcrypt.compare(password, hashPassword);
+};
+
+userSchema.methods.setPasswordRecovery = async function (recoveryToken) {
+  this.passwordRecoveryToken = crypto
+    .createHash('sha256')
+    .update(recoveryToken)
+    .digest('hex');
+  this.passwordRecoveryTime = Date.now();
+
+  console.log(this.passwordRecoveryToken, this.passwordRecoveryTime);
 };
 
 userSchema.methods.passwordChangedAfter = function (JWTTimestamp) {
@@ -54,7 +92,7 @@ userSchema.methods.passwordChangedAfter = function (JWTTimestamp) {
       this.passwordChanged.getTime() / 1000,
       10
     );
-    return passwordChangeTimestamp < JWTTimestamp;
+    return passwordChangeTimestamp > JWTTimestamp;
   }
 };
 
