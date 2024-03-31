@@ -1,4 +1,3 @@
-const fs = require('fs');
 const dotenv = require('dotenv');
 const express = require('express');
 const morgan = require('morgan');
@@ -7,6 +6,10 @@ const userRoute = require('./routers/user');
 const mongoose = require('mongoose');
 const AppError = require('./utils/app-error');
 const errorHandler = require('./controllers/errorController');
+const expressSanitizer = require('express-sanitizer');
+const helmet = require('helmet');
+const mongoSanitize = require('express-mongo-sanitize');
+const hpp = require('hpp');
 
 dotenv.config({ path: './config.env' });
 
@@ -21,8 +24,18 @@ mongoose
     console.log('Something went wrong during connection to db');
   });
 
-app.use(morgan('dev'));
+app.use(helmet());
+
+app.use(hpp());
+
+app.use(mongoSanitize());
+
+if (process.env.DEV_STATUS === 'DEVELOPMENT') {
+  app.use(morgan('dev'));
+}
 app.use(express.json());
+
+app.use(expressSanitizer());
 
 app.use((req, res, next) => {
   console.log('Hello from custom middleware😉');

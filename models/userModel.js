@@ -55,6 +55,10 @@ const userSchema = mongoose.Schema({
     type: Date,
     select: false,
   },
+  active: {
+    type: Boolean,
+    default: true,
+  },
 });
 
 userSchema.pre('save', async function (next) {
@@ -69,6 +73,11 @@ userSchema.pre('save', function (next) {
   if (!this.isModified('password') || this.$isNew) return next();
 
   this.passwordChanged = Date.now();
+  next();
+});
+
+userSchema.pre(/^find/, function (next) {
+  this.find({ active: { $ne: false } });
   next();
 });
 
