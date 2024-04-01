@@ -1,5 +1,7 @@
 const mongoose = require('mongoose');
 const slugify = require('slugify');
+const User = require('./../models/userModel');
+const tour = require('../routers/tour');
 
 const tourSchema = new mongoose.Schema(
   {
@@ -8,7 +10,7 @@ const tourSchema = new mongoose.Schema(
       required: [true, 'Name must be provided!'],
       unique: true,
       minlength: 5,
-      maxlength: 17,
+      maxlength: 31,
     },
     slug: String,
     duration: {
@@ -69,10 +71,35 @@ const tourSchema = new mongoose.Schema(
       required: [true, 'Image cover must be provided'],
     },
     images: [String],
-    startDates: {
-      type: Boolean,
-      default: false,
+    startDates: [Date],
+    guides: [
+      {
+        type: mongoose.Schema.ObjectId,
+        ref: 'User',
+      },
+    ],
+    startPosition: {
+      type: {
+        type: String,
+        default: 'Point',
+        enum: ['Point'],
+      },
+      coordinates: [Number],
+      address: String,
+      description: String,
     },
+    locations: [
+      {
+        type: {
+          type: String,
+          default: 'Point',
+          enum: ['Point'],
+        },
+        coordinates: [Number],
+        description: String,
+        day: Number,
+      },
+    ],
   },
   { toJSON: { virtuals: true }, toObject: { virtuals: true } }
 );
@@ -86,8 +113,22 @@ tourSchema.pre('save', function (next) {
   next();
 });
 
+// tourSchema.pre('save', async function (next) {
+//   const guides = this.guides.map(async (userId) => await User.findById(userId));
+//   const user = await User.findById(this.guides[0]);
+//   console.log(user);
+
+//   this.guides = await Promise.all(guides);
+//   next();
+// });
+
 tourSchema.pre(/^find/, function (next) {
   this.find({ special: { $ne: true } });
+  next();
+});
+
+tourSchema.pre(/^find/, function (next) {
+  this.populate({ path: 'guides', select: '-__v -role -email' });
   next();
 });
 
