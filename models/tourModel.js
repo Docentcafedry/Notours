@@ -33,6 +33,7 @@ const tourSchema = new mongoose.Schema(
     ratingsAverage: {
       type: Number,
       default: 4,
+      set: (val) => Math.round(val * 10) / 10,
     },
     ratingQuantity: {
       type: Number,
@@ -108,6 +109,12 @@ tourSchema.virtual('weekDuration').get(function () {
   return this.duration / 7;
 });
 
+tourSchema.virtual('reviews', {
+  ref: 'Review',
+  localField: '_id',
+  foreignField: 'tour',
+});
+
 tourSchema.pre('save', function (next) {
   this.slug = slugify(this.name, { replacement: '_', lower: true, trim: true });
   next();
@@ -123,7 +130,7 @@ tourSchema.pre('save', function (next) {
 // });
 
 tourSchema.pre(/^find/, function (next) {
-  this.find({ special: { $ne: true } });
+  this.find({ special: { $ne: true } }).populate({ path: 'reviews' });
   next();
 });
 

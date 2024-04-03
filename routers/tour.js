@@ -1,8 +1,11 @@
 const express = require('express');
 const tourControllers = require(`./../controllers/tourConctrollers.js`);
 const authControllers = require('./../controllers/authController');
+const reviewsRouter = require('./review.js');
 
 const tour = express.Router();
+
+tour.use('/:id/reviews', reviewsRouter);
 
 tour
   .route('/top-price')

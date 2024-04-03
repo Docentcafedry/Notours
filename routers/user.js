@@ -1,6 +1,8 @@
 const express = require('express');
 const authControllers = require('./../controllers/authController');
 const userControllers = require('./../controllers/userControllers');
+const handlerFactory = require('./../controllers/handlerFactory');
+const User = require('./../models/userModel');
 
 const user = express.Router();
 
@@ -24,5 +26,6 @@ user.delete(
 user.route('/signup').post(authControllers.signUp);
 user.route('/signin').post(authControllers.signIn);
 user.route('/').get(authControllers.protectRoute, userControllers.getUsers);
+user.route('/:id').get(handlerFactory.getOne(User));
 
 module.exports = user;
