@@ -43,8 +43,6 @@ reviewSchema.statics.getAverageStat = async function (tourId) {
     },
   ]);
 
-  console.log(stats);
-  console.log(tourId);
   if (stats) {
     await Tour.findByIdAndUpdate(tourId, {
       ratingsAverage: stats[0].ratingAvg,
@@ -73,7 +71,7 @@ reviewSchema.post(/^findOneAnd/, async function (next) {
 });
 
 reviewSchema.pre(/^find/, function (next) {
-  this.populate({ path: 'user', select: 'name' });
+  this.populate({ path: 'user', select: 'name photo' });
   next();
 });
 

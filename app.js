@@ -1,8 +1,10 @@
 const dotenv = require('dotenv');
+const path = require('path');
 const express = require('express');
 const morgan = require('morgan');
 const tourRoute = require(`./routers/tour`);
 const userRoute = require('./routers/user');
+const viewRoute = require('./routers/view');
 const reviewRoute = require('./routers/review');
 const mongoose = require('mongoose');
 const AppError = require('./utils/app-error');
@@ -15,6 +17,10 @@ const hpp = require('hpp');
 dotenv.config({ path: './config.env' });
 
 const app = express();
+
+app.set('view engine', 'pug');
+
+app.use(express.static(path.join(__dirname, 'public')));
 
 mongoose
   .connect(process.env.DATABASE_LOCAL, {})
@@ -48,6 +54,18 @@ app.use((req, res, next) => {
   next();
 });
 
+// app.get('/', (req, res) => {
+//   return res.status(200).render('base', {
+//     title: 'Overview',
+//   });
+// });
+
+// app.get('/overview', (req, res) => {
+//   return res.status(200).render('overview', {
+//     title: 'Overview',
+//   });
+// });
+app.use('/', viewRoute);
 app.use('/api/v1/tours', tourRoute);
 app.use('/api/v1/users', userRoute);
 app.use('/api/v1/reviews', reviewRoute);

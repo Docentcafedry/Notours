@@ -1,0 +1,8 @@
+mixin createStarsReview(review)
+    each number in [1, 2, 3 , 4, 5]
+        - if (number <= review.rating)
+            svg.reviews__star.reviews__star--active
+                use(xlink:href='/img/icons.svg#icon-star')
+        - if (number > review.rating)
+            svg.reviews__star.reviews__star--inactive
+                use(xlink:href='/img/icons.svg#icon-star')
