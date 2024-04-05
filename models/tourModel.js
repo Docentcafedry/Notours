@@ -79,7 +79,7 @@ const tourSchema = new mongoose.Schema(
         ref: 'User',
       },
     ],
-    startPosition: {
+    startLocation: {
       type: {
         type: String,
         default: 'Point',
@@ -104,6 +104,8 @@ const tourSchema = new mongoose.Schema(
   },
   { toJSON: { virtuals: true }, toObject: { virtuals: true } }
 );
+
+tourSchema.index({ startLocation: '2dsphere' });
 
 tourSchema.virtual('weekDuration').get(function () {
   return this.duration / 7;
@@ -140,8 +142,13 @@ tourSchema.pre(/^find/, function (next) {
 });
 
 tourSchema.pre('aggregate', function (next) {
-  this.pipeline().unshift({ $match: { special: { $ne: true } } });
-  next();
+  if (this.pipeline()[0].$geoNear) {
+    this.pipeline()[-1] = { $match: { special: { $ne: true } } };
+    next();
+  } else {
+    this.pipeline().unshift({ $match: { special: { $ne: true } } });
+    next();
+  }
 });
 
 const Tour = mongoose.model('Tour', tourSchema);

@@ -11,6 +11,52 @@ exports.getHigherPrice = (req, res, next) => {
   next();
 };
 
+exports.getToursWithIn = errorCatch(async (req, res, next) => {
+  const withInNumber = req.params.distance;
+  const [lat, lng] = req.params.pickedPosition.split(',');
+  const withInNumberByMeasuring =
+    req.params.unit === 'mls' ? withInNumber / 3963 : withInNumber / 6371;
+  const tours = await Tour.find({
+    startLocation: {
+      $geoWithin: { $centerSphere: [[lng, lat], withInNumberByMeasuring] },
+    },
+  });
+  return res.status(200).json({
+    status: 'success',
+    result: tours.length,
+    data: {
+      tours: tours,
+    },
+  });
+});
+
+exports.getToursNearPosition = errorCatch(async (req, res, next) => {
+  const [lat, lng] = req.params.position.split(',');
+
+  const tours = await Tour.aggregate([
+    {
+      $geoNear: {
+        near: { type: 'Point', coordinates: [lng * 1, lat * 1] },
+        distanceMultiplier: req.params.unit === 'mls' ? 1 / 1609.34 : 1 / 621,
+        distanceField: 'distanceFromYou',
+        spherical: true,
+      },
+    },
+    {
+      $project: { name: 1, duration: 1, distanceFromYou: 1 },
+    },
+    { $addFields: { distanceFromYou: { $round: ['$distanceFromYou', 0] } } },
+  ]);
+
+  return res.status(200).json({
+    status: 'success',
+    result: tours.length,
+    data: {
+      tours: tours,
+    },
+  });
+});
+
 exports.getYearTours = errorCatch(async (req, res) => {
   const year = req.params.year;
   try {

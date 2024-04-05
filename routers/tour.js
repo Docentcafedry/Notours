@@ -8,6 +8,16 @@ const tour = express.Router();
 tour.use('/:id/reviews', reviewsRouter);
 
 tour
+  .route(
+    '/tours-within/distance/:distance/picked-position/:pickedPosition/unit/:unit'
+  )
+  .get(tourControllers.getToursWithIn);
+
+tour
+  .route('/tours-near-position/position/:position/unit/:unit')
+  .get(tourControllers.getToursNearPosition);
+
+tour
   .route('/top-price')
   .get(tourControllers.getHigherPrice, tourControllers.getAllTours);
 
