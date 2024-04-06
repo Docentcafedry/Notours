@@ -29,3 +29,9 @@ exports.getTourOverview = errorCatch(async (req, res, next) => {
     tour: tour,
   });
 });
+
+exports.getLogin = (req, res) => {
+  return res.status(200).render('login', {
+    title: 'Login',
+  });
+};

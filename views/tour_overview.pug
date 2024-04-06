@@ -2,7 +2,10 @@ extends base
 include ./reviewStarMixin 
 
 
-
+block append head 
+    
+    <script src='https://api.mapbox.com/mapbox-gl-js/v3.2.0/mapbox-gl.js'></script>
+    <link href='https://api.mapbox.com/mapbox-gl-js/v3.2.0/mapbox-gl.css' rel='stylesheet' />
             
 
 block content
@@ -72,7 +75,7 @@ block content
                 img.picture-box__img.picture-box__img--1(src=`/img/tours/${picture}`, alt=`${tour.name} ${index+1}`)
 
     section.section-map
-    #map
+        #map(data-locations=`${JSON.stringify(tour.locations)}`)
 
     section.section-reviews
         .reviews
@@ -97,3 +100,7 @@ block content
                 h2.heading-secondary What are you waiting for?
                 p.cta__text= `${tour.duration} days. ${tour.locations.length} adventure. Infinite memories. Make it yours today!`
                 button.btn.btn--green.span-all-rows Book tour now!
+
+
+
+    

@@ -13,6 +13,7 @@ const expressSanitizer = require('express-sanitizer');
 const helmet = require('helmet');
 const mongoSanitize = require('express-mongo-sanitize');
 const hpp = require('hpp');
+const cookieParser = require('cookie-parser');
 
 dotenv.config({ path: './config.env' });
 
@@ -31,7 +32,7 @@ mongoose
     console.log('Something went wrong during connection to db');
   });
 
-app.use(helmet());
+app.use(helmet({ contentSecurityPolicy: false }));
 
 app.use(hpp());
 
@@ -41,6 +42,7 @@ if (process.env.DEV_STATUS === 'DEVELOPMENT') {
   app.use(morgan('dev'));
 }
 app.use(express.json());
+app.use(cookieParser());
 
 app.use(expressSanitizer());
 

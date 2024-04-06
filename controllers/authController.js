@@ -5,6 +5,7 @@ const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
 const sendMail = require('./../utils/email-sender');
 const bcrypt = require('bcrypt');
+const { trusted } = require('mongoose');
 
 exports.resetPassword = errorCatch(async (req, res, next) => {
   if (!req.body.password || !req.body.confirmPassword) {
@@ -142,7 +143,7 @@ exports.signIn = errorCatch(async (req, res, next) => {
   const { email, password } = req.body;
   const user = await User.findOne({ email }).select('+password');
   if (!user) {
-    next(new AppError('There is no such user', 401));
+    return next(new AppError('There is no such user', 401));
   }
 
   const validPassword = await user.comparePasswords(password, user.password);
@@ -155,9 +156,13 @@ exports.signIn = errorCatch(async (req, res, next) => {
     expiresIn: '1h',
   });
 
+  res.cookie('jwt', token, {
+    expires: new Date(Date.now() + 1000 * 60 * 60),
+    httpOnly: true,
+    secure: true,
+  });
   return res.status(201).json({
     status: 'success',
-    user_id: user._id,
     token: token,
   });
 });
