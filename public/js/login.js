@@ -10,8 +10,6 @@ export const login = async (email, password) => {
     window.setTimeout(() => {
       location.assign('/overview');
     }, 1500);
-
-    console.log(data);
   } catch (err) {
     showAlert(err.response.data.message, 'error');
   }
