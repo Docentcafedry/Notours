@@ -8,7 +8,7 @@ const user = express.Router();
 
 user.post('/recoverPassword', authControllers.recoverPassword);
 user.post('/resetPassword/:recoverToken', authControllers.resetPassword);
-user.post(
+user.patch(
   '/changePassword',
   authControllers.protectRoute,
   userControllers.changePassword

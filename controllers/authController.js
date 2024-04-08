@@ -75,12 +75,11 @@ exports.recoverPassword = errorCatch(async (req, res, next) => {
 });
 
 exports.protectRoute = errorCatch(async (req, res, next) => {
+  let token;
   const authHeader = req.headers.authorization;
-  if (!authHeader || !authHeader.startsWith('Bearer')) {
-    next(new AppError('Authorization info not provided '));
-  }
+  const cookieAuth = req.cookies.jwt;
 
-  const token = authHeader.split(' ')[1];
+  token = authHeader ? authHeader.split(' ')[1] : cookieAuth;
 
   if (!token) {
     next(new AppError('Token is not provided'));
@@ -99,6 +98,7 @@ exports.protectRoute = errorCatch(async (req, res, next) => {
   }
 
   req.user = user;
+  res.locals.user = user;
 
   next();
 });

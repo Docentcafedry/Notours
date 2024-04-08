@@ -74,3 +74,10 @@ exports.logOut = errorCatch(async (req, res) => {
     status: 'success',
   });
 });
+
+exports.getProfile = (req, res) => {
+  return res.status(200).render('accountTemplate', {
+    title: 'Account',
+    user: req.user,
+  });
+};
