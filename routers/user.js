@@ -16,6 +16,8 @@ user.patch(
 user.patch(
   '/changeUserInfo',
   authControllers.protectRoute,
+  userControllers.upload,
+  userControllers.resizeImage,
   userControllers.changeUserInfo
 );
 user.delete(

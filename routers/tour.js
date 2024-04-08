@@ -32,6 +32,8 @@ tour
   .patch(
     authControllers.protectRoute,
     authControllers.isAuthorized('lead-guide', 'admin'),
+    tourControllers.upload,
+    tourControllers.resizeImage,
     tourControllers.changeTour
   )
   .get(tourControllers.getTour)

@@ -3,6 +3,37 @@ const errorCatch = require('../utils/error-catching');
 const AppError = require('../utils/app-error');
 const jwt = require('jsonwebtoken');
 const filterObjectForUpdate = require('./../utils/filter-object');
+const multer = require('multer');
+const sharp = require('sharp');
+
+const storage = multer.memoryStorage();
+
+const filter = (req, file, cb) => {
+  if (file.mimetype.split('/')[0] !== 'image') {
+    return cb(new AppError('You can upload only image for photo'), false);
+  } else {
+    return cb(null, true);
+  }
+};
+
+exports.upload = multer({ storage: storage, fileFilter: filter }).single(
+  'photo'
+);
+
+exports.resizeImage = errorCatch(async (req, res, next) => {
+  if (!req.file) {
+    return next();
+  }
+
+  req.body.photo = `${req.file.originalname.split('.')[0]}-${Date.now()}.jpeg`;
+  await sharp(req.file.buffer)
+    .resize(300, 300)
+    .toFormat('jpeg')
+    .jpeg({ quality: 90 })
+    .toFile(`public/img/users/${req.body.photo}`);
+
+  next();
+});
 
 exports.changePassword = errorCatch(async (req, res, next) => {
   if (!req.body.currentPassword) {
@@ -52,7 +83,12 @@ exports.changeUserInfo = errorCatch(async (req, res, next) => {
   if (!req.body) {
     next(new AppError('Provide fields to update', 400));
   }
-  const fieldsToUpdate = filterObjectForUpdate(req.body, 'name', 'email');
+  const fieldsToUpdate = filterObjectForUpdate(
+    req.body,
+    'name',
+    'email',
+    'photo'
+  );
   const user = await User.findOneAndUpdate({ _id: userId }, fieldsToUpdate, {
     new: true,
   });

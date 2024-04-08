@@ -384,19 +384,18 @@ if (logOutButton) {
 if (changeUserInfoForm) {
   changeUserInfoForm.addEventListener('submit', /*#__PURE__*/function () {
     var _ref3 = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee3(e) {
-      var name, email;
+      var data;
       return _regeneratorRuntime().wrap(function _callee3$(_context3) {
         while (1) switch (_context3.prev = _context3.next) {
           case 0:
             e.preventDefault();
-            name = document.getElementById('name').value;
-            email = document.getElementById('email').value;
-            _context3.next = 5;
-            return (0, _changeUserData.changeUserInfo)({
-              name: name,
-              email: email
-            }, 'info');
-          case 5:
+            data = new FormData();
+            data.append('name', document.getElementById('name').value);
+            data.append('email', document.getElementById('email').value);
+            data.append('photo', document.getElementById('photo').files[0]);
+            _context3.next = 7;
+            return (0, _changeUserData.changeUserInfo)(data, 'info');
+          case 7:
           case "end":
             return _context3.stop();
         }
@@ -460,7 +459,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "51267" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "56379" + '/');
   ws.onmessage = function (event) {
     checkedAssets = {};
     assetsToAccept = [];

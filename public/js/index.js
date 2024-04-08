@@ -34,9 +34,12 @@ if (logOutButton) {
 if (changeUserInfoForm) {
   changeUserInfoForm.addEventListener('submit', async (e) => {
     e.preventDefault();
-    const name = document.getElementById('name').value;
-    const email = document.getElementById('email').value;
-    await changeUserInfo({ name, email }, 'info');
+    const data = new FormData();
+    data.append('name', document.getElementById('name').value);
+    data.append('email', document.getElementById('email').value);
+    data.append('photo', document.getElementById('photo').files[0]);
+
+    await changeUserInfo(data, 'info');
   });
 }
 
