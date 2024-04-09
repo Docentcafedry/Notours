@@ -18,7 +18,10 @@ const userSchema = mongoose.Schema({
       message: 'Invalid email address',
     },
   },
-  photo: String,
+  photo: {
+    type: String,
+    default: 'default.jpg',
+  },
   password: {
     type: String,
     required: [true, "You shoulld provide user's password"],

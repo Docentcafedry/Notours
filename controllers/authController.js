@@ -3,7 +3,7 @@ const errorCatch = require('../utils/error-catching');
 const AppError = require('../utils/app-error');
 const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
-const sendMail = require('./../utils/email-sender');
+const EmailSender = require('./../utils/email-sender');
 const bcrypt = require('bcrypt');
 const { trusted } = require('mongoose');
 
@@ -59,14 +59,7 @@ exports.recoverPassword = errorCatch(async (req, res, next) => {
   await user.save({ validateBeforeSave: false });
 
   const resetUrl = `${req.protocol}://127.0.0.1${req.originalUrl}/${uniqueToken}`;
-  const mailOptions = {
-    sender: '"Alex Foo Koch 👻" <docent@ethereal.email>',
-    recipient: userEmail,
-    subject: 'Password recovery',
-    text: `Hello, ${user.name}!. Your link for password recovery: ${resetUrl}\nIf you didn't invoke password recovery just ignore this message `,
-  };
-
-  await sendMail(mailOptions);
+  await new EmailSender(user, resetUrl).sendPasswordRecoveryMessage();
 
   res.status(200).json({
     status: 'success',
@@ -129,6 +122,11 @@ exports.signUp = errorCatch(async (req, res, next) => {
   const token = jwt.sign({ id: user._id }, process.env.JWT_PRIVATE_KEY, {
     expiresIn: '1h',
   });
+
+  await new EmailSender(
+    user,
+    `${req.protocol}://127.0.0.1:5555/profile/info`
+  ).sendWelcomeMessage();
 
   return res.status(201).json({
     status: 'success',
