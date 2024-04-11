@@ -6,6 +6,7 @@ const tourRoute = require(`./routers/tour`);
 const userRoute = require('./routers/user');
 const viewRoute = require('./routers/view');
 const reviewRoute = require('./routers/review');
+const bookingRoute = require('./routers/booking');
 const mongoose = require('mongoose');
 const AppError = require('./utils/app-error');
 const errorHandler = require('./controllers/errorController');
@@ -14,6 +15,7 @@ const helmet = require('helmet');
 const mongoSanitize = require('express-mongo-sanitize');
 const hpp = require('hpp');
 const cookieParser = require('cookie-parser');
+const cors = require('cors');
 
 dotenv.config({ path: './config.env' });
 
@@ -32,7 +34,24 @@ mongoose
     console.log('Something went wrong during connection to db');
   });
 
-app.use(helmet({ contentSecurityPolicy: false }));
+// app.use(cors({ origin: true, credentials: true }));
+app.use(function (req, res, next) {
+  // CORS headers
+  res.header('Access-Control-Allow-Origin', '*'); // restrict it to the required domain
+  res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS');
+  // Set custom headers for CORS
+  res.header(
+    'Access-Control-Allow-Headers',
+    'Content-type,Accept,X-Custom-Header'
+  );
+
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
+
+  return next();
+});
+// app.use(helmet({ contentSecurityPolicy: false }));
 
 app.use(hpp());
 
@@ -71,6 +90,7 @@ app.use('/', viewRoute);
 app.use('/api/v1/tours', tourRoute);
 app.use('/api/v1/users', userRoute);
 app.use('/api/v1/reviews', reviewRoute);
+app.use('/api/v1/bookings', bookingRoute);
 
 app.all('*', (req, res, next) => {
   const error = new AppError('There is no such path in app', 400);

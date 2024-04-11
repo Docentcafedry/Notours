@@ -3,6 +3,11 @@ const slugify = require('slugify');
 const User = require('./../models/userModel');
 const tour = require('../routers/tour');
 
+const dateInfoSchema = new mongoose.Schema({
+  date: { type: Date },
+  placesLeft: { type: Number },
+});
+
 const tourSchema = new mongoose.Schema(
   {
     name: {
@@ -72,7 +77,7 @@ const tourSchema = new mongoose.Schema(
       required: [true, 'Image cover must be provided'],
     },
     images: [String],
-    startDates: [Date],
+    startDates: [dateInfoSchema],
     guides: [
       {
         type: mongoose.Schema.ObjectId,
@@ -118,7 +123,15 @@ tourSchema.virtual('reviews', {
 });
 
 tourSchema.pre('save', function (next) {
-  this.slug = slugify(this.name, { replacement: '_', lower: true, trim: true });
+  if (this.$isNew) {
+    this.slug = slugify(this.name, {
+      replacement: '_',
+      lower: true,
+      trim: true,
+    });
+
+    this.startDates.forEach((el) => (el.placesLeft = this.maxGroupSize));
+  }
   next();
 });
 

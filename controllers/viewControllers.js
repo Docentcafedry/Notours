@@ -1,4 +1,5 @@
 const Tour = require('./../models/tourModel');
+const Booking = require('./../models/bookingModel');
 const jwt = require('jsonwebtoken');
 const User = require('./../models/userModel');
 const APIFeatures = require('./../utils/api-features');
@@ -17,7 +18,6 @@ exports.checkLogin = async (req, res, next) => {
       process.env.JWT_PRIVATE_KEY
     );
     const { id: userId, iat } = payload;
-    console.log(userId);
     const user = await User.findOne({ _id: userId }).select('+role');
     if (!user) {
       return next();
@@ -35,6 +35,27 @@ exports.checkLogin = async (req, res, next) => {
 };
 
 exports.getOverview = errorCatch(async (req, res, next) => {
+  if (
+    req.query.tourId &&
+    req.query.userId &&
+    req.query.price &&
+    req.query.tourDate
+  ) {
+    const { tourId, userId, price } = req.query;
+    await Booking.create({ tour: tourId, user: userId, price });
+
+    const tour = await Tour.findById(tourId);
+
+    tour.startDates.forEach((el) => {
+      if (el.date.toISOString() === req.query.tourDate) {
+        el.placesLeft = el.placesLeft - 1;
+      }
+    });
+
+    await tour.save({ validateBeforeSave: false });
+    return res.redirect('/overview');
+  }
+
   const apiFeature = new APIFeatures(Tour.find(), req.query)
     .filter()
     .sort()
@@ -65,6 +86,10 @@ exports.getLogin = (req, res) => {
   return res.status(200).render('login', {
     title: 'Login',
   });
+};
+
+exports.getSignUp = (req, res) => {
+  return res.status(200).render('signup', { title: 'Sign up' });
 };
 
 exports.logOut = errorCatch(async (req, res) => {

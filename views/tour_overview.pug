@@ -18,6 +18,17 @@ block content
         .heading-box
             h1.heading-primary
                 span= tour.name
+            .date-select 
+                label.date-label(for="dates") Choose a date:
+
+                select.select-date-field(name="tour-dates" id="dates")
+                    each date in tour.startDates 
+                        option(value=`${date.date}`)= `${date.date.toLocaleString('en-US', {month: "long", year: "numeric"})}` 
+                //-     <option value="volvo">Volvo</option>
+                //-     <option value="saab">Saab</option>
+                //-     <option value="mercedes">Mercedes</option>
+                //-     <option value="audi">Audi</option>
+                //- </select> 
             .heading-box__group
                 .heading-box__detail
                     svg.heading-box__icon
@@ -27,7 +38,8 @@ block content
                     svg.heading-box__icon
                         use(xlink:href='/img/icons.svg#icon-map-pin')
                     span.heading-box__text= tour.startLocation.description
-
+    
+            
     section.section-description
         .overview-box
             div
@@ -37,7 +49,7 @@ block content
                         svg.overview-box__icon
                             use(xlink:href='/img/icons.svg#icon-calendar')
                         span.overview-box__label Next date
-                        span.overview-box__text= tour.startDates[1].toLocaleString('en-US', {month: "long", year: "numeric"})
+                        span.overview-box__text= tour.startDates[1].date.toLocaleString('en-US', {month: "long", year: "numeric"})
                     .overview-box__detail
                         svg.overview-box__icon
                             use(xlink:href='/img/icons.svg#icon-trending-up')
@@ -99,8 +111,10 @@ block content
             .cta__content
                 h2.heading-secondary What are you waiting for?
                 p.cta__text= `${tour.duration} days. ${tour.locations.length} adventure. Infinite memories. Make it yours today!`
-                button.btn.btn--green.span-all-rows Book tour now!
-
+                - if (user)
+                    button(data-tour-id=`${tour.id}`)#book-button.btn.btn--green.span-all-rows Book tour now!
+                - else 
+                    a(href="/login").btn.btn--green.span-all-rows Log in to book!
 
 
     

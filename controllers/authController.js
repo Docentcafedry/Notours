@@ -128,6 +128,8 @@ exports.signUp = errorCatch(async (req, res, next) => {
     `${req.protocol}://127.0.0.1:5555/profile/info`
   ).sendWelcomeMessage();
 
+  res.cookie('jwt', token);
+
   return res.status(201).json({
     status: 'success',
     token: token,
@@ -154,11 +156,14 @@ exports.signIn = errorCatch(async (req, res, next) => {
     expiresIn: '1h',
   });
 
+  console.log(token);
+
   res.cookie('jwt', token, {
     expires: new Date(Date.now() + 1000 * 60 * 60),
     httpOnly: true,
     secure: true,
   });
+
   return res.status(201).json({
     status: 'success',
     token: token,

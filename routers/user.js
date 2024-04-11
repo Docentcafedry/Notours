@@ -3,8 +3,11 @@ const authControllers = require('./../controllers/authController');
 const userControllers = require('./../controllers/userControllers');
 const handlerFactory = require('./../controllers/handlerFactory');
 const User = require('./../models/userModel');
+const bookingRouter = require('./booking.js');
 
 const user = express.Router();
+
+user.use('/:userId/bookings', bookingRouter);
 
 user.post('/recoverPassword', authControllers.recoverPassword);
 user.post('/resetPassword/:recoverToken', authControllers.resetPassword);

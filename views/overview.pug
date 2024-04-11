@@ -25,7 +25,7 @@ block content
                     .card__data
                         svg.card__icon
                             use(xlink:href="img/icons.svg#icon-calendar")
-                        span= tour.startDates[0].toLocaleString('en-US', {month: "long", year: "numeric"})
+                        span= tour.startDates[0].date.toLocaleString('en-US', {month: "long", year: "numeric"})
                     .card__data
                         svg.card__icon
                             use(xlink:href="img/icons.svg#icon-flag")
@@ -46,4 +46,4 @@ block content
                         span.card__footer-value= tour.ratingsAverage
                         | 
                         span.card__footer-text= `rating (${tour.ratingQuantity})`
-                    a.btn.btn--green.btn--small(href="/#") Details
+                    a.btn.btn--green.btn--small(href=`/tour/${tour.slug}`) Details

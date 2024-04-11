@@ -6,6 +6,7 @@ const view = express.Router();
 
 view.get('/logout', viewControllers.checkLogin, viewControllers.logOut);
 view.get('/login', viewControllers.getLogin);
+view.get('/signup', viewControllers.getSignUp);
 view.get('/overview', viewControllers.checkLogin, viewControllers.getOverview);
 view.get(
   '/tour/:slug',
