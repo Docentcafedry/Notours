@@ -5,10 +5,12 @@ const User = require('./../models/userModel');
 const APIFeatures = require('./../utils/api-features');
 const errorCatch = require('./../utils/error-catching');
 const AppError = require('./../utils/app-error');
+const crypto = require('crypto');
 
 exports.checkLogin = async (req, res, next) => {
   try {
     const authCookie = req.cookies.jwt;
+    console.log(req.cookies.jwt);
     if (!authCookie) {
       return next();
     }
@@ -17,9 +19,9 @@ exports.checkLogin = async (req, res, next) => {
       req.cookies.jwt,
       process.env.JWT_PRIVATE_KEY
     );
-    const { id: userId, iat } = payload;
-    const user = await User.findOne({ _id: userId }).select('+role');
-    if (!user) {
+    const { id, iat } = payload;
+    const user = await User.findOne({ _id: id }).select('+role');
+    if (!user || !user.active) {
       return next();
     }
 
@@ -106,3 +108,29 @@ exports.getProfile = (req, res) => {
     user: req.user,
   });
 };
+
+exports.confirmSigningUp = errorCatch(async (req, res, next) => {
+  const uniqueToken = crypto
+    .createHash('sha256')
+    .update(req.params.uniqueToken)
+    .digest('hex');
+
+  const user = await User.find({ signUpToken: uniqueToken }).find({
+    active: false,
+  });
+  if (!user) {
+    next(new AppError('There is no such user'));
+  }
+
+  const token = jwt.sign({ id: user[0].id }, process.env.JWT_PRIVATE_KEY, {
+    expiresIn: '1h',
+  });
+
+  res.cookie('jwt', token);
+
+  user[0].active = true;
+  user[0].signUpToken = undefined;
+  await user[0].save({ validateBeforeSave: false });
+
+  return res.redirect(`/overview`);
+});

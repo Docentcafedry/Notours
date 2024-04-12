@@ -51,7 +51,7 @@ app.use(function (req, res, next) {
 
   return next();
 });
-// app.use(helmet({ contentSecurityPolicy: false }));
+app.use(helmet({ contentSecurityPolicy: false }));
 
 app.use(hpp());
 

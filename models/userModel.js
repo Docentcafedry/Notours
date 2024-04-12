@@ -46,6 +46,7 @@ const userSchema = mongoose.Schema({
       message: "User role can be as: user, guide, 'lead-guide, admin",
     },
     select: false,
+    default: 'user',
   },
   passwordRecoveryToken: {
     type: String,
@@ -55,13 +56,17 @@ const userSchema = mongoose.Schema({
     type: Date,
     select: false,
   },
+  signUpToken: {
+    type: String,
+    select: false,
+  },
   passwordChanged: {
     type: Date,
     select: false,
   },
   active: {
     type: Boolean,
-    default: true,
+    default: false,
   },
 });
 
@@ -81,7 +86,10 @@ userSchema.pre('save', function (next) {
 });
 
 userSchema.pre(/^find/, function (next) {
-  this.find({ active: { $ne: false } });
+  if (!this._conditions.signUpToken) {
+    this.find({ active: { $ne: false } });
+    next();
+  }
   next();
 });
 
@@ -97,6 +105,13 @@ userSchema.methods.setPasswordRecovery = async function (recoveryToken) {
   this.passwordRecoveryTime = Date.now();
 
   console.log(this.passwordRecoveryToken, this.passwordRecoveryTime);
+};
+
+userSchema.methods.setSignUpToken = async function (signUpToken) {
+  this.signUpToken = crypto
+    .createHash('sha256')
+    .update(signUpToken)
+    .digest('hex');
 };
 
 userSchema.methods.passwordChangedAfter = function (JWTTimestamp) {

@@ -1,4 +1,5 @@
 import { showAlert } from './alerts';
+import axios from 'axios';
 
 export const signup = async (name, email, password, confirmPassword) => {
   try {
@@ -8,11 +9,13 @@ export const signup = async (name, email, password, confirmPassword) => {
       password,
       confirmPassword,
     });
-    showAlert('Signed up successfully', 'success');
+    console.log(data);
+    showAlert('Check your email for an activation link', 'success');
     window.setTimeout(() => {
       location.assign('/overview');
-    }, 1500);
+    }, 2000);
   } catch (err) {
-    showAlert(err.response.data.message, 'error');
+    console.log(err);
+    showAlert(err, 'error');
   }
 };

@@ -55,7 +55,7 @@ module.exports = class EmailSender {
 
   async sendPasswordRecoveryMessage() {
     await this.sendEmail(
-      'passwordRecovary',
+      'passwordRecovery',
       'Your password recovery next steps'
     );
   }

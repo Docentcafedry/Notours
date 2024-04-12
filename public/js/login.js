@@ -1,4 +1,5 @@
 import { showAlert } from './alerts';
+import axios from 'axios';
 
 export const login = async (email, password) => {
   try {
@@ -11,6 +12,7 @@ export const login = async (email, password) => {
       location.assign('/overview');
     }, 1500);
   } catch (err) {
+    console.log(err);
     showAlert(err.response.data.message, 'error');
   }
 };

@@ -16,12 +16,11 @@ exports.resetPassword = errorCatch(async (req, res, next) => {
     .createHash('sha256')
     .update(recoverToken)
     .digest('hex');
-  console.log(hashedToken);
   const user = await User.findOne({
     passwordRecoveryToken: hashedToken,
   }).select('+passwordRecoveryTime');
 
-  if (!user) {
+  if (!user || !user.active) {
     next(new AppError('There is no such user'));
   }
 
@@ -48,7 +47,7 @@ exports.recoverPassword = errorCatch(async (req, res, next) => {
   const userEmail = req.body.email;
   const user = await User.findOne({ email: userEmail });
 
-  if (!user) {
+  if (!user || !user.active) {
     next(new AppError('There is no such user with this email'));
   }
 
@@ -79,10 +78,9 @@ exports.protectRoute = errorCatch(async (req, res, next) => {
   }
 
   const payload = await jwt.verify(token, process.env.JWT_PRIVATE_KEY);
-  const { id: userId, iat } = payload;
-  console.log(userId);
+  const { id, iat } = payload;
   const user = await User.findOne({ _id: userId }).select('+role');
-  if (!user) {
+  if (!user || !user.active) {
     next(new AppError('There is no such user'));
   }
 
@@ -99,7 +97,7 @@ exports.protectRoute = errorCatch(async (req, res, next) => {
 exports.isAuthorized = (...fields) => {
   return errorCatch(async (req, resp, next) => {
     const userRole = req.user.role;
-    console.log(userRole);
+
     if (!fields.includes(userRole)) {
       next(
         new AppError('You have no privilages for executing this operation', 403)
@@ -119,23 +117,58 @@ exports.signUp = errorCatch(async (req, res, next) => {
     role,
   });
 
+  const uniqueToken = crypto.randomBytes(48).toString('hex');
+
+  await user.setSignUpToken(uniqueToken);
+
+  await user.save({ validateBeforeSave: false });
+
+  let signUpUrl;
+
+  if (req.route.path.startsWith('/signup')) {
+    signUpUrl = `${req.protocol}://${req.get(
+      'host'
+    )}/confirmSigningUp/${uniqueToken}`;
+  } else {
+    signUpUrl = `${req.protocol}://${req.get(
+      'host'
+    )}/api/v1/users/confirmSigningUp/${uniqueToken}`;
+  }
+  await new EmailSender(user, signUpUrl).sendWelcomeMessage();
+
+  return res.status(200).json({
+    status: 'success',
+    message: 'Check your email for an activation link!',
+  });
+});
+
+exports.cofirmSigningUp = errorCatch(async (req, res, next) => {
+  const uniqueToken = crypto
+    .createHash('sha256')
+    .update(req.params.uniqueToken)
+    .digest('hex');
+
+  const user = await User.find({ signUpToken: uniqueToken }).find({
+    active: false,
+  });
+  console.log(user[0]);
+  if (!user) {
+    next(new AppError('There is no such user'));
+  }
+
   const token = jwt.sign({ id: user._id }, process.env.JWT_PRIVATE_KEY, {
     expiresIn: '1h',
   });
 
-  await new EmailSender(
-    user,
-    `${req.protocol}://127.0.0.1:5555/profile/info`
-  ).sendWelcomeMessage();
-
   res.cookie('jwt', token);
 
-  return res.status(201).json({
-    status: 'success',
-    token: token,
-    data: {
-      user: user,
-    },
+  user[0].active = true;
+  user[0].signUpToken = undefined;
+  await user[0].save({ validateBeforeSave: false });
+
+  return res.status(200).json({
+    status: 'succes',
+    token,
   });
 });
 
@@ -152,11 +185,9 @@ exports.signIn = errorCatch(async (req, res, next) => {
     next(new AppError('Bad credentials', 401));
   }
 
-  const token = jwt.sign({ id: user._id }, process.env.JWT_PRIVATE_KEY, {
+  const token = jwt.sign({ id: user.id }, process.env.JWT_PRIVATE_KEY, {
     expiresIn: '1h',
   });
-
-  console.log(token);
 
   res.cookie('jwt', token, {
     expires: new Date(Date.now() + 1000 * 60 * 60),

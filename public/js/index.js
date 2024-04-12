@@ -34,6 +34,7 @@ if (signupFrom) {
     const email = document.getElementById('email').value;
     const password = document.getElementById('password').value;
     const confirmPassword = document.getElementById('confirmPassword').value;
+    console.log(name, email, password, confirmPassword);
 
     await signup(name, email, password, confirmPassword);
   });

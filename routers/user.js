@@ -29,6 +29,7 @@ user.delete(
   userControllers.deleteAccount
 );
 user.route('/signup').post(authControllers.signUp);
+user.get('/confirmSigningUp/:uniqueToken', authControllers.cofirmSigningUp);
 user.route('/signin').post(authControllers.signIn);
 user.route('/').get(authControllers.protectRoute, userControllers.getUsers);
 user.route('/:id').get(handlerFactory.getOne(User));
