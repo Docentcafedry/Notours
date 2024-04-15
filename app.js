@@ -13,9 +13,11 @@ const errorHandler = require('./controllers/errorController');
 const expressSanitizer = require('express-sanitizer');
 const helmet = require('helmet');
 const mongoSanitize = require('express-mongo-sanitize');
+const bookingControllers = require('./controllers/bookingControllers');
 const hpp = require('hpp');
 const cookieParser = require('cookie-parser');
 const cors = require('cors');
+const errorCatch = require('./utils/error-catching');
 
 dotenv.config({ path: './config.env' });
 
@@ -86,6 +88,16 @@ app.use((req, res, next) => {
 //     title: 'Overview',
 //   });
 // });
+
+if (process.env.DEV_STATUS === 'DEVELOPMENT') {
+  app.post(
+    '/webhook',
+    express.raw({ type: 'application/json' }),
+    bookingControllers.webhook
+  );
+}
+
+app.use(express.json());
 app.use('/', viewRoute);
 app.use('/api/v1/tours', tourRoute);
 app.use('/api/v1/users', userRoute);
@@ -100,6 +112,6 @@ app.all('*', (req, res, next) => {
 
 app.use(errorHandler);
 
-app.listen(5555, () => {
+app.listen(process.env.APP_PORT | 5555, () => {
   console.log('Started listening port 5555');
 });

@@ -3,6 +3,7 @@ const errorCatch = require('../utils/error-catching');
 const AppError = require('../utils/app-error');
 const Tour = require('./../models/tourModel');
 const Booking = require('./../models/bookingModel');
+const User = require('../models/userModel');
 
 exports.getCheckoutSession = errorCatch(async (req, res, next) => {
   const tourId = req.params.tourId;
@@ -54,9 +55,56 @@ exports.getCheckoutSession = errorCatch(async (req, res, next) => {
     customer_email: req.user.email,
   });
 
+  res.locals.alert = 'Booking alert';
+
   return res.status(200).json({
     status: 'success',
     session,
+  });
+});
+
+async function createBookingCheckout(data) {
+  const user = await User.findOne({ email: data.customer_email });
+
+  await Booking.create({
+    tour: data.client_reference_id,
+    user: user.id,
+    price: data.line_items[0].unit_amount / 100,
+  });
+
+  const tour = await Tour.findById(data.client_reference_id);
+
+  tour.startDates.forEach((el) => {
+    if (el.date.toISOString() === req.query.tourDate) {
+      el.placesLeft = el.placesLeft - 1;
+    }
+  });
+
+  await tour.save({ validateBeforeSave: false });
+}
+
+// This is the endpoint for stripe webhook on demployment stage
+exports.webhook = errorCatch(async (req, res, next) => {
+  const sig = req.headers['stripe-signature'];
+
+  let event;
+
+  try {
+    event = stripe.webhooks.constructEvent(
+      request.body,
+      sig,
+      process.env.WEBHOOK_ENDPOINT_SECRET
+    );
+  } catch (err) {
+    return next(new AppError('Webhook error', 400));
+  }
+
+  if (event.type === 'payment_intent.succeeded') {
+    await createBookingCheckout(event.data.object);
+  }
+
+  res.status(200).json({
+    received: true,
   });
 });
 
