@@ -38,6 +38,14 @@ const uploadData = async () => {
   }
 };
 
+const uploadTours = async () => {
+  try {
+    await Tour.create(tours);
+  } catch (err) {
+    console.log(err);
+  }
+};
+
 const clearTours = async () => {
   try {
     await Tour.deleteMany();
@@ -55,6 +63,9 @@ if (process.argv[2] === '--upload') {
   uploadData();
 }
 
+if (process.argv[2] === '--uploadtours') {
+  uploadTours();
+}
 if (process.argv[2] === '--clear') {
   clearTours();
 }

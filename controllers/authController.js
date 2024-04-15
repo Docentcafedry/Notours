@@ -79,7 +79,7 @@ exports.protectRoute = errorCatch(async (req, res, next) => {
 
   const payload = await jwt.verify(token, process.env.JWT_PRIVATE_KEY);
   const { id, iat } = payload;
-  const user = await User.findOne({ _id: userId }).select('+role');
+  const user = await User.findOne({ _id: id }).select('+role');
   if (!user || !user.active) {
     next(new AppError('There is no such user'));
   }

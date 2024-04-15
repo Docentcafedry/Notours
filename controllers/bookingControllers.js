@@ -47,7 +47,9 @@ exports.getCheckoutSession = errorCatch(async (req, res, next) => {
     // customer: req.user.email,
     success_url: `${req.protocol}://${req.get('host')}/overview?tourId=${
       tour._id
-    }&userId=${req.user.id}&price=${tour.price}&tourDate=${tourDate}`,
+    }&userId=${req.user.id}&price=${
+      tour.price
+    }&tourDate=${tourDate}&alert=booking`,
     cancel_url: `${req.protocol}://${req.get('host')}/tour/${tour.slug}`,
     mode: 'payment',
     currency: 'usd',
@@ -55,15 +57,13 @@ exports.getCheckoutSession = errorCatch(async (req, res, next) => {
     customer_email: req.user.email,
   });
 
-  res.locals.alert = 'Booking alert';
-
   return res.status(200).json({
     status: 'success',
     session,
   });
 });
 
-async function createBookingCheckout(data) {
+async function createBookingCheckout(data, req) {
   const user = await User.findOne({ email: data.customer_email });
 
   await Booking.create({
@@ -100,7 +100,7 @@ exports.webhook = errorCatch(async (req, res, next) => {
   }
 
   if (event.type === 'payment_intent.succeeded') {
-    await createBookingCheckout(event.data.object);
+    await createBookingCheckout(event.data.object, req);
   }
 
   res.status(200).json({

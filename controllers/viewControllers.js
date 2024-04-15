@@ -7,6 +7,16 @@ const errorCatch = require('./../utils/error-catching');
 const AppError = require('./../utils/app-error');
 const crypto = require('crypto');
 
+exports.checkAlert = async (req, res, next) => {
+  const { alert } = req.query;
+
+  if (alert === 'booking') {
+    res.locals.alert =
+      "A tour successfully booked. If a tour didn't showed up in my tours section you need wait some time!";
+  }
+  next();
+};
+
 exports.checkLogin = async (req, res, next) => {
   try {
     const authCookie = req.cookies.jwt;
@@ -55,7 +65,8 @@ exports.getOverview = errorCatch(async (req, res, next) => {
     });
 
     await tour.save({ validateBeforeSave: false });
-    return res.redirect('/overview');
+    res.locals.alert = req.query.alert;
+    return res.redirect(`/profile/info?alert=${req.query.alert}`);
   }
 
   const apiFeature = new APIFeatures(Tour.find(), req.query)
@@ -65,6 +76,7 @@ exports.getOverview = errorCatch(async (req, res, next) => {
     .paginate();
 
   const tours = await apiFeature.query;
+  console.log(tours);
 
   return res.status(200).render('overview', {
     title: 'Overview',

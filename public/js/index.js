@@ -6,7 +6,7 @@ import { bookTour } from './book-tour';
 import { signup } from './signup';
 import { showAlert } from './alerts';
 
-const body = document.querySelector('body');
+const bodyAlert = document.querySelector('body').dataset.alert;
 const map = document.getElementById('map');
 const loginForm = document.querySelector('.login-form');
 const signupFrom = document.querySelector('.signup-form');
@@ -15,12 +15,8 @@ const changeUserInfoForm = document.querySelector('.form-user-data');
 const changeUserPasswordForm = document.querySelector('.form-user-settings');
 const bookTourButton = document.getElementById('book-button');
 
-if (body && body.dataset.alert) {
-  showAlert(
-    "A tour successfully booked. If a tour didn't showed up in my tours section you need wait some time!",
-    'success',
-    5000
-  );
+if (bodyAlert) {
+  showAlert(bodyAlert, 'success', 5000);
 }
 
 if (map) {

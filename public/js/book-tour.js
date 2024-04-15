@@ -1,3 +1,4 @@
+import { errorMonitor } from 'nodemailer/lib/xoauth2';
 import { showAlert } from './alerts';
 import axios from 'axios';
 
@@ -12,6 +13,7 @@ export async function bookTour(tourId, tourDate) {
     );
     await stripe.redirectToCheckout({ sessionId: resp.data.session.id });
   } catch (err) {
+    console.log(errorMonitor);
     showAlert(err.response.data.message, 'error');
   }
 }

@@ -4,6 +4,8 @@ const authControllers = require('./../controllers/authController');
 
 const view = express.Router();
 
+view.use(viewControllers.checkAlert);
+
 view.get('/logout', viewControllers.checkLogin, viewControllers.logOut);
 view.get('/login', viewControllers.getLogin);
 view.get('/signup', viewControllers.getSignUp);
